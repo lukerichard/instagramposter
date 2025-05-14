@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Instagram Auth & Webhook</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f9f9f9; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        button { padding: 1em 2em; font-size: 1.2em; background: #007bff; color: #fff; border: none; border-radius: 5px; cursor: pointer; margin: 0.5em; }
+        button:hover { background: #0056b3; }
+        #status { margin-top: 1em; font-size: 1em; }
+    </style>
+</head>
+<body>
+    <h1>Instagram Auth & Webhook</h1>
+    <button id="loginBtn">Login with Instagram</button>
+    <div id="status"></div>
+    <script>
+        // Replace with your Instagram app credentials
+        const CLIENT_ID = '703358962095350';
+        const REDIRECT_URI = 'https://minuet.ca/instagram-callback';
+        const BACKEND_URL = 'https://minuet.ca/exchange_token';
+
+        // Step 1: Start OAuth flow
+        document.getElementById('loginBtn').onclick = function() {
+            const authUrl = `https://api.instagram.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=user_profile,user_media&response_type=code`;
+            window.location = authUrl;
+        };
+
+        // Step 2: Handle redirect with code
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        if (code) {
+            document.getElementById('status').textContent = 'Instagram code received. Sending to backend...';
+            fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('status').textContent = 'Access token sent to webhook!';
+                } else {
+                    document.getElementById('status').textContent = 'Error: ' + (data.error || 'Unknown error');
+                }
+            })
+            .catch(err => {
+                document.getElementById('status').textContent = 'Error: ' + err.message;
+            });
+        }
+    </script>
+</body>
+</html> 
